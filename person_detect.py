@@ -7,6 +7,7 @@ import cv2
 import argparse
 import sys
 
+LABELS = {1: 'person', 2: 'bicycle', 3: 'car', 4: 'motorcycle', 5: 'airplane', 6: 'bus', 7: 'train', 8: 'truck', 9: 'boat', 10: 'traffic', 11: 'fire', 13: 'stop', 14: 'parking', 15: 'bench', 16: 'bird', 17: 'cat', 18: 'dog', 19: 'horse', 20: 'sheep', 21: 'cow', 22: 'elephant', 23: 'bear', 24: 'zebra', 25: 'giraffe', 27: 'backpack', 28: 'umbrella', 31: 'handbag', 32: 'tie', 33: 'suitcase', 34: 'frisbee', 35: 'skis', 36: 'snowboard', 37: 'sports', 38: 'kite', 39: 'baseball', 40: 'baseball', 41: 'skateboard', 42: 'surfboard', 43: 'tennis', 44: 'bottle', 46: 'wine', 47: 'cup', 48: 'fork', 49: 'knife', 50: 'spoon', 51: 'bowl', 52: 'banana', 53: 'apple', 54: 'sandwich', 55: 'orange', 56: 'broccoli', 57: 'carrot', 58: 'hot', 59: 'pizza', 60: 'donut', 61: 'cake', 62: 'chair', 63: 'couch', 64: 'potted', 65: 'bed', 67: 'dining', 70: 'toilet', 72: 'tv', 73: 'laptop', 74: 'mouse', 75: 'remote', 76: 'keyboard', 77: 'cell', 78: 'microwave', 79: 'oven', 80: 'toaster', 81: 'sink', 82: 'refrigerator', 84: 'book', 85: 'clock', 86: 'vase', 87: 'scissors', 88: 'teddy', 89: 'hair', 90: 'toothbrush', 0: 'None'}
 
 class Queue:
     '''
@@ -55,71 +56,76 @@ class PersonDetect:
         self.output_shape = self.model.outputs[self.output_name].shape
 
     def load_model(self):
-    '''
-    TODO: This method needs to be completed by you
-    '''
-        net = self.core.load_network(network=self.model, device_name=self.device, num_requests=1)
+        '''
+        TODO: This method needs to be completed by you
+        '''
+        self.net = self.core.load_network(network=self.model, device_name=self.device, num_requests=1)
         
-        return net
-        
-    def predict(self, image):
-    '''
-    TODO: This method needs to be completed by you
-    '''
-        input_img = preprocess_input(image)
+    def predict(self, image, initial_w, initial_h):
+        '''
+        TODO: This method needs to be completed by you
+        '''
+        #print("preprocess_input")
+        input_img = self.preprocess_input(image)
         
         input_dict = {self.input_name: input_img}
         
+        #print("start_async")
         self.net.infer(input_dict)
         
-        outputs = self.net.requests[1].outputs[self.output_name]
-        
-        coords = preprocess_outputs(outputs)
-        
-        img = draw_outputs(coords, image)
+        outputs = self.net.requests[0].outputs[self.output_name]
+        #print("preprocess_outputs")
+        coords = self.preprocess_outputs(outputs, initial_w, initial_h)
+        #print("draw_outputs")
+        img = self.draw_outputs(coords, image)
         
         return coords, img
     
     def draw_outputs(self, coords, image):
-    '''
-    TODO: This method needs to be completed by you
-    '''
+        '''
+        TODO: This method needs to be completed by you
+        '''
     
         for coord in coords:
             xmin, ymin, xmax, ymax = coord
             cv2.rectangle(image, (xmin, ymin), (xmax,ymax), (0, 255, 0), 1)
-            cv2.putText(image, LABELS[int(obj[1])], (xmin, ymin-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+            cv2.putText(image, "person", (xmin, ymin-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
     
         return image
 
-    def preprocess_outputs(self, outputs):
-    '''
-    TODO: This method needs to be completed by you
-    '''
-        coord = []
-        coords
+    def preprocess_outputs(self, outputs, initial_w, initial_h):
+        '''
+        TODO: This method needs to be completed by you
+        '''
+        
+        coords = list()
         for obj in outputs[0][0]:
-            
+            coord = list()
             if int(obj[1])!=1:
                 continue
             
             if obj[2] > self.threshold:
-                coord[0] = int(obj[3]*self.initial_w)
-                coord[1] = int(obj[4]*self.initial_h)
-                coord[2] = int(obj[5]*self.initial_w)
-                coord[3] = int(obj[6]*self.initial_h)
+                coord.append(int(obj[3] * initial_w))
+                coord.append(int(obj[4] * initial_h))
+                coord.append(int(obj[5] * initial_w))
+                coord.append(int(obj[6] * initial_h))
                 coords.append(coord)
         return coords
                 
 
     def preprocess_input(self, image):
-    '''
-    TODO: This method needs to be completed by you
-    '''
-        img = cv2.resize(image, (self.input_shape[1], self.input_shape[0]))
-        img = image.transpose((2,0,1))
-        img = image.reshape((1, 3, (self.input_shape[0], self.input_shape[1])))
-        return img
+        '''
+        TODO: This method needs to be completed by you
+        '''
+        n, c, h, w = self.input_shape
+        
+        input_img=cv2.resize(image, (w,h), interpolation = cv2.INTER_AREA)
+        input_img=np.moveaxis(input_img, -1, 0)
+        
+        #img = cv2.resize(image, (w, h))
+        #img = img.transpose((2,0,1))
+        #img = img.reshape((n, c, h, w))
+        return input_img
 
 def main(args):
     model=args.model
@@ -166,7 +172,7 @@ def main(args):
                 break
             counter+=1
             
-            coords, image= pd.predict(frame)
+            coords, image= pd.predict(frame, initial_w, initial_h)
             num_people= queue.check_coords(coords)
             print(f"Total People in frame = {len(coords)}")
             print(f"Number of people in queue = {num_people}")

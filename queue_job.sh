@@ -5,7 +5,7 @@ exec 1>/output/stdout.log 2>/output/stderr.log
 # TODO: Create MODEL variable
 MODEL=$1
 # TODO: Create DEVICE variable
-DEVICE=$1
+DEVICE=$2
 # TODO: Create VIDEO variable
 VIDEO=$3
 QUEUE=$4
