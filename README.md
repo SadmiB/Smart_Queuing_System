@@ -11,6 +11,6 @@ Tasks:
 
 The three scenarios studied in this project:
 
-* [Scenario 1: Manufacturing Sector](https://github.com/SadmiB/Smart_Queuing_System/blob/master/Scenario 1.md)
-* [Scenario 2: Retail Sector](https://github.com/SadmiB/Smart_Queuing_System/blob/master/Scenario 2.md)
-* [Scenario 3: Transportation Sector](https://github.com/SadmiB/Smart_Queuing_System/blob/master/Scenario 3.md)
+* [Scenario 1: Manufacturing Sector](https://github.com/SadmiB/Smart_Queuing_System/blob/master/Scenario%201.md)
+* [Scenario 2: Retail Sector](https://github.com/SadmiB/Smart_Queuing_System/blob/master/Scenario%202.md)
+* [Scenario 3: Transportation Sector](https://github.com/SadmiB/Smart_Queuing_System/blob/master/Scenario%203.md)
